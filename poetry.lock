@@ -667,6 +667,8 @@ optional = false
 python-versions = "*"
 files = [
     {file = "jsonpath-ng-1.7.0.tar.gz", hash = "sha256:f6f5f7fd4e5ff79c785f1573b394043b39849fb2bb47bcead935d12b00beab3c"},
+    {file = "jsonpath_ng-1.7.0-py2-none-any.whl", hash = "sha256:898c93fc173f0c336784a3fa63d7434297544b7198124a68f9a3ef9597b0ae6e"},
+    {file = "jsonpath_ng-1.7.0-py3-none-any.whl", hash = "sha256:f3d7f9e848cba1b6da28c55b1c26ff915dc9e0b1ba7e752a53d6da8d5cbd00b6"},
 ]
 
 [package.dependencies]
@@ -1264,13 +1266,13 @@ files = [
 
 [[package]]
 name = "singer-sdk"
-version = "0.43.1"
+version = "0.44.0"
 description = "A framework for building Singer taps"
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "singer_sdk-0.43.1-py3-none-any.whl", hash = "sha256:bd03da661317907b26db6806f1adb2a365c6183889f981602a405f8f784aa1ba"},
-    {file = "singer_sdk-0.43.1.tar.gz", hash = "sha256:4941208e95bde7865943b06677536aee316a755b5b3b7af0a6ef7717454e8645"},
+    {file = "singer_sdk-0.44.0-py3-none-any.whl", hash = "sha256:15d896edae6e16c2614e5211f52546a63ea58cd88578e61efc259dfefc032972"},
+    {file = "singer_sdk-0.44.0.tar.gz", hash = "sha256:050ab063188a0d6f6989456d0d3d9c52cb6da706950ec6f8d8ad1a60ecae7a1b"},
 ]
 
 [package.dependencies]
@@ -1286,7 +1288,7 @@ joblib = ">=1.3.0"
 jsonpath-ng = ">=1.5.3"
 jsonschema = ">=4.16.0"
 packaging = ">=23.1"
-pytest = {version = ">=7.2.1", optional = true, markers = "extra == \"docs\" or extra == \"testing\""}
+pytest = {version = ">=7.2.1", optional = true, markers = "extra == \"testing\""}
 python-dotenv = ">=0.20"
 PyYAML = ">=6.0"
 referencing = ">=0.30.0"
@@ -1296,6 +1298,7 @@ simpleeval = ">=0.9.13,<1.0.1 || >1.0.1"
 simplejson = ">=3.17.6"
 sqlalchemy = ">=1.4,<3.0"
 typing-extensions = ">=4.5.0"
+urllib3 = {version = "*", markers = "python_version >= \"3.10\""}
 
 [package.extras]
 docs = ["furo (>=2024.5.6)", "myst-parser (>=3)", "pytest (>=7.2.1)", "sphinx (>=7)", "sphinx-copybutton (>=0.5.2)", "sphinx-inline-tabs (>=2023.4.21)", "sphinx-notfound-page (>=1.0.0)", "sphinx-reredirects (>=0.1.5)"]
@@ -1551,4 +1554,4 @@ s3 = ["fs-s3fs"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4.0"
-content-hash = "c2b0df6c5131d8f832c46a147c89ddaa8c57b8ca38d8a79aba0db194225937ff"
+content-hash = "e109a1fb2762df14f876592757ac81f33fdc2dcc82ad37b0a587f5e56872b93d"
