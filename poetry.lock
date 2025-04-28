@@ -162,24 +162,24 @@ crt = ["awscrt (==0.22.0)"]
 
 [[package]]
 name = "catppuccin"
-version = "2.3.4"
+version = "2.4.1"
 description = "🐍 Soothing pastel theme for Python."
 optional = false
-python-versions = "<4.0.0,>=3.9.0"
+python-versions = ">=3.9.0"
 groups = ["dev"]
 files = [
-    {file = "catppuccin-2.3.4-py3-none-any.whl", hash = "sha256:964993a85ef27f148fdedb41ca55e6b56e0c50b77e827e9a6bb76bad23afdc63"},
-    {file = "catppuccin-2.3.4.tar.gz", hash = "sha256:e17eff84e85a059afaf99e4d696b2d821f6c5f3db49cb9d3caf2d58366e6513f"},
+    {file = "catppuccin-2.4.1-py3-none-any.whl", hash = "sha256:7821374c18a2c51ce1fd9239bce5689a4da6d9f26d1e324e0d19cc0e2ad7f77b"},
+    {file = "catppuccin-2.4.1.tar.gz", hash = "sha256:bed41d14189a52569f6c1fd941155d7fc13561e76e84f11c5cf04dd0cb07b3c1"},
 ]
 
 [package.dependencies]
-pygments = {version = ">=2.17.2,<3.0.0", optional = true, markers = "extra == \"pygments\""}
+pygments = {version = ">=2.17.2", optional = true, markers = "extra == \"pygments\""}
 
 [package.extras]
-gh-pages = ["tinycss2 (>=1.2.1,<2.0.0)"]
-matplotlib = ["matplotlib (>=3.8.4,<4.0.0)"]
-pygments = ["pygments (>=2.17.2,<3.0.0)"]
-rich = ["rich (>=13.7.0,<14.0.0)"]
+gh-pages = ["tinycss2 (>=1.2.1)"]
+matplotlib = ["matplotlib (>=3.8.4)"]
+pygments = ["pygments (>=2.17.2)"]
+rich = ["rich (>=13.7.0)"]
 
 [[package]]
 name = "certifi"
@@ -614,14 +614,14 @@ files = [
 
 [[package]]
 name = "ipython"
-version = "8.31.0"
+version = "8.36.0"
 description = "IPython: Productive Interactive Computing"
 optional = false
 python-versions = ">=3.10"
 groups = ["dev"]
 files = [
-    {file = "ipython-8.31.0-py3-none-any.whl", hash = "sha256:46ec58f8d3d076a61d128fe517a51eb730e3aaf0c184ea8c17d16e366660c6a6"},
-    {file = "ipython-8.31.0.tar.gz", hash = "sha256:b6a2274606bec6166405ff05e54932ed6e5cfecaca1fc05f2cacde7bb074d70b"},
+    {file = "ipython-8.36.0-py3-none-any.whl", hash = "sha256:12b913914d010dcffa2711505ec8be4bf0180742d97f1e5175e51f22086428c1"},
+    {file = "ipython-8.36.0.tar.gz", hash = "sha256:24658e9fe5c5c819455043235ba59cfffded4a35936eefceceab6b192f7092ff"},
 ]
 
 [package.dependencies]
@@ -649,7 +649,7 @@ notebook = ["ipywidgets", "notebook"]
 parallel = ["ipyparallel"]
 qtconsole = ["qtconsole"]
 test = ["packaging", "pickleshare", "pytest", "pytest-asyncio (<0.22)", "testpath"]
-test-extra = ["curio", "ipython[test]", "matplotlib (!=3.2.0)", "nbformat", "numpy (>=1.23)", "pandas", "trio"]
+test-extra = ["curio", "ipython[test]", "jupyter_ai", "matplotlib (!=3.2.0)", "nbformat", "numpy (>=1.23)", "pandas", "trio"]
 
 [[package]]
 name = "jedi"
@@ -896,14 +896,14 @@ windows-terminal = ["colorama (>=0.4.6)"]
 
 [[package]]
 name = "pytest"
-version = "8.3.4"
+version = "8.3.5"
 description = "pytest: simple powerful testing with Python"
 optional = false
 python-versions = ">=3.8"
 groups = ["dev"]
 files = [
-    {file = "pytest-8.3.4-py3-none-any.whl", hash = "sha256:50e16d954148559c9a74109af1eaf0c945ba2d8f30f0a3d3335edde19788b6f6"},
-    {file = "pytest-8.3.4.tar.gz", hash = "sha256:965370d062bce11e73868e0335abac31b4d3de0e82f4007408d242b4f8610761"},
+    {file = "pytest-8.3.5-py3-none-any.whl", hash = "sha256:c69214aa47deac29fad6c2a4f590b9c4a9fdb16a403176fe154b79c0b4d4d820"},
+    {file = "pytest-8.3.5.tar.gz", hash = "sha256:f4efe70cc14e511565ac476b57c279e12a855b11f48f212af1080ef2263d3845"},
 ]
 
 [package.dependencies]
