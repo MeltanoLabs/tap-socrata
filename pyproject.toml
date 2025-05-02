@@ -3,7 +3,7 @@ name = "meltanolabs-tap-socrata"
 version = "0.0.1"
 description = "Singer tap for Socrata, built with the Meltano Singer SDK."
 authors = [{ name = "Cody Hanson", email = "cody@codyjhanson.com" }]
-requires-python = ">=3.10,<4.0"
+requires-python = ">=3.9,<4.0"
 readme = "README.md"
 license = "Apache-2.0"
 keywords = [
