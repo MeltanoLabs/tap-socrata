@@ -1,9 +1,11 @@
-[tool.poetry]
+[project]
 name = "meltanolabs-tap-socrata"
 version = "0.0.1"
 description = "Singer tap for Socrata, built with the Meltano Singer SDK."
+authors = [{ name = "Cody Hanson", email = "cody@codyjhanson.com" }]
+requires-python = ">=3.10,<4.0"
 readme = "README.md"
-authors = ["Cody Hanson <cody@codyjhanson.com>"]
+license = "Apache-2.0"
 keywords = [
     "ELT",
     "Socrata",
@@ -16,25 +18,34 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
-license = "Apache-2.0"
-packages = [
-    { include = "tap_socrata" },
+dependencies = [
+    "singer-sdk[faker]~=0.45.10",
+    "requests~=2.32.3",
 ]
 
-[tool.poetry.dependencies]
-python = ">=3.10,<4.0"
-singer-sdk = { version="~=0.45.10", extras = ["faker",] }
-fs-s3fs = { version = "~=1.1.1", optional = true }
-requests = "~=2.32.3"
+[project.optional-dependencies]
+s3 = ["fs-s3fs~=1.1.1"]
 
-[tool.poetry.group.dev.dependencies]
-pytest = ">=8"
-singer-sdk = { version="~=0.45.10", extras = ["testing"] }
-ipython = "^8.31.0"
-catppuccin = {extras = ["pygments"], version = "^2.3.4"}
+[project.scripts]
+tap-socrata = "tap_socrata.tap:TapSocrata.cli"
 
-[tool.poetry.extras]
-s3 = ["fs-s3fs"]
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "singer-sdk[testing]~=0.45.10",
+    "ipython>=8.31.0,<9",
+    "catppuccin[pygments]>=2.3.4,<3",
+]
+
+[tool.hatch.build.targets.sdist]
+include = ["tap_socrata"]
+
+[tool.hatch.build.targets.wheel]
+include = ["tap_socrata"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.pytest.ini_options]
 addopts = '--durations=10'
@@ -58,11 +69,3 @@ allow-star-arg-any = true
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.scripts]
-# CLI declaration
-tap-socrata = 'tap_socrata.tap:TapSocrata.cli'
