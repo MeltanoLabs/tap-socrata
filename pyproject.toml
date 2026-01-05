@@ -32,7 +32,7 @@ tap-socrata = "tap_socrata.tap:TapSocrata.cli"
 [dependency-groups]
 dev = [
     "pytest>=8",
-    "singer-sdk[testing]~=0.45.10",
+    "singer-sdk[testing]~=0.48.1",
     "ipython>=8.31.0,<9",
     "catppuccin[pygments]>=2.3.4,<3",
 ]
