@@ -4,19 +4,37 @@
 from __future__ import annotations
 
 import decimal
-from datetime import datetime, timezone
-import typing as t
-from singer_sdk.streams import RESTStream
-from singer_sdk.authenticators import BasicAuthenticator
-from requests.auth import HTTPBasicAuth
-from singer_sdk.helpers.jsonpath import extract_jsonpath
 import logging
+import sys
+import typing as t
+from datetime import datetime, timezone
+
+from requests.auth import HTTPBasicAuth
+from singer_sdk.authenticators import APIAuthenticatorBase
+from singer_sdk.helpers.jsonpath import extract_jsonpath
+from singer_sdk.pagination import OffsetPaginator
+from singer_sdk.streams import RESTStream
+
+if sys.version_info >= (3, 12):
+    from typing import override
+else:
+    from typing_extensions import override
 
 if t.TYPE_CHECKING:
     import requests
+    from singer_sdk import Tap
     from singer_sdk.helpers.types import Context
 
 logger = logging.getLogger(__name__)
+
+
+class SocrataPaginator(OffsetPaginator):
+    """Paginator for Socrata's `$limit`/`$offset` API."""
+
+    @override
+    def has_more(self, response: requests.Response) -> bool:
+        """Return True if the response indicates there are more records."""
+        return len(response.json()) >= self.page_size
 
 
 class SocrataStream(RESTStream):
@@ -24,15 +42,16 @@ class SocrataStream(RESTStream):
 
     records_jsonpath = "$[*]"
 
+    @override
     def __init__(
         self,
-        tap: t.Any,
+        tap: Tap,
         name: str,
         schema: dict,
         domain: str,
         dataset_id: str,  # Add dataset_id parameter
         dataset_type: str,
-        data_updated_at: datetime,
+        data_updated_at: datetime | None,
         limit: int = 50000,  # maximum records returned per request
     ) -> None:
         """Initialize the Socrata stream.
@@ -43,6 +62,9 @@ class SocrataStream(RESTStream):
             schema: JSON schema for the stream
             domain: Socrata domain for this dataset
             dataset_id: Socrata dataset ID for API calls
+            dataset_type: Type of dataset (e.g., "map" or "table")
+            data_updated_at: Timestamp of the last update for the dataset
+            limit: Maximum number of records to return per request (default: 50000)
         """
         super().__init__(tap=tap, name=name, schema=schema)
         self._domain = domain
@@ -51,14 +73,16 @@ class SocrataStream(RESTStream):
         self.dataset_type = dataset_type
         if self.dataset_type == "map":
             self.path = f"/resource/{dataset_id}.geojson"
-        self._data_updated_at = data_updated_at
-        if self._data_updated_at:
+        self._data_updated_at: datetime | None = data_updated_at
+        if data_updated_at:
             self._data_updated_at = data_updated_at.replace(tzinfo=timezone.utc)
         self.limit = limit
 
+    @override
     def validate_response(self, response: requests.Response) -> None:
         response.raise_for_status()
 
+    @override
     def get_records(self, context: Context | None) -> t.Iterable[dict[str, t.Any]]:
         """Get records.
 
@@ -69,23 +93,27 @@ class SocrataStream(RESTStream):
             starting_ts = starting_ts.replace(tzinfo=timezone.utc)
 
             if starting_ts >= self._data_updated_at:
-                return []
+                return
         yield from super().get_records(context)
 
     @property
+    @override
     def url_base(self) -> str:
         """Return the API URL root for this dataset."""
         return f"https://{self._domain}"
 
     @property
-    def authenticator(self) -> HTTPBasicAuth | None:
+    @override
+    def authenticator(self) -> HTTPBasicAuth | APIAuthenticatorBase:
         """Return a new authenticator object."""
-        if self.config.get("api_key_id"):
-            return HTTPBasicAuth(
-                self.config.get("api_key_id"), self.config.get("api_key_secret")
-            )
+        api_key_id = self.config.get("api_key_id")
+        api_key_secret = self.config.get("api_key_secret")
+        if api_key_id and api_key_secret:
+            return HTTPBasicAuth(api_key_id, api_key_secret)
+        return APIAuthenticatorBase()
 
     @property
+    @override
     def http_headers(self) -> dict:
         """Return the http headers needed."""
         headers = {}
@@ -95,7 +123,7 @@ class SocrataStream(RESTStream):
             headers["User-Agent"] = self.config["user_agent"]
         return headers
 
-    # tap_socrata/client.py
+    @override
     def get_url_params(
         self,
         context: Context | None,
@@ -112,29 +140,12 @@ class SocrataStream(RESTStream):
             params["$offset"] = next_page_token
         return params
 
-    def get_next_page_token(
-        self,
-        response: requests.Response,
-        previous_token: t.Any | None,
-    ) -> t.Any | None:
-        """Return token for identifying next page or None if no more pages."""
-        records = response.json()
+    @override
+    def get_new_paginator(self) -> SocrataPaginator:
+        """Return a paginator for offset-based pagination."""
+        return SocrataPaginator(start_value=0, page_size=self.limit)
 
-        # If we got no records, we're done
-        if not records:
-            return None
-
-        # Calculate next offset
-        previous_offset = previous_token or 0
-        records_returned = len(records)
-
-        # If we got less than the limit,  we're done
-        if records_returned < self.limit:
-            return None
-
-        # Otherwise, return next offset
-        return previous_offset + records_returned
-
+    @override
     def parse_response(self, response: requests.Response) -> t.Iterable[dict]:
         """Parse the response and return an iterator of result records."""
         for record in extract_jsonpath(
@@ -146,6 +157,7 @@ class SocrataStream(RESTStream):
             else:
                 yield record
 
+    @override
     def get_url(self, context: Context | None = None) -> str:
         """Get URL for API request."""
         return f"{self.url_base}/resource/{self._dataset_id}.json"

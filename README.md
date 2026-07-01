@@ -1,42 +1,25 @@
 # tap-socrata
 
-`tap-socrata` is a Singer tap for Socrata.
+`tap-socrata` is a Singer tap for [Socrata](https://www.tylertech.com/products/socrata) open data
+portals (e.g. `data.cityofnewyork.us`, `data.cityofchicago.org`).
 
 Built with the [Meltano Tap SDK](https://sdk.meltano.com) for Singer Taps.
 
-<!--
-
-Developer TODO: Update the below as needed to correctly describe the install procedure. For instance, if you do not have a PyPi repo, or if you want users to directly install from your git repo, you can modify this step as appropriate.
-
-## Installation
-
-Install from PyPi:
+Install from PyPI:
 
 ```bash
-pipx install tap-socrata
+uv tool install meltanolabs-tap-socrata
 ```
 
 Install from GitHub:
 
 ```bash
-pipx install git+https://github.com/ORG_NAME/tap-socrata.git@main
+uv tool install git+https://github.com/MeltanoLabs/tap-socrata.git@main
 ```
-
--->
 
 ## Configuration
 
 ### Accepted Config Options
-
-<!--
-Developer TODO: Provide a list of config options accepted by the tap.
-
-This section can be created by copy-pasting the CLI output from:
-
-```
-tap-socrata --about --format=markdown
-```
--->
 
 A full list of supported settings and capabilities for this
 tap is available by running:
@@ -44,6 +27,14 @@ tap is available by running:
 ```bash
 tap-socrata --about
 ```
+
+| Setting | Required | Description |
+| --- | --- | --- |
+| `domains` | Yes | Domain names to query (e.g. `["data.cityofnewyork.us"]`) |
+| `dataset_ids` | No | Restrict discovery to specific Socrata dataset (4x4) IDs, instead of every dataset on `domains` |
+| `api_key_id` / `api_key_secret` | No | Socrata API key credentials, for authenticated/private datasets |
+| `app_token` / `secret_token` | No | Socrata app token, for higher rate limits |
+| `user_agent` | No | Custom User-Agent string to send with requests |
 
 ### Configure using environment variables
 
@@ -53,9 +44,9 @@ environment variable is set either in the terminal context or in the `.env` file
 
 ### Source Authentication and Authorization
 
-<!--
-Developer TODO: If your tap requires special access on the source system, or any special authentication requirements, provide those here.
--->
+Public Socrata datasets (like most of [NYC Open Data](https://data.cityofnewyork.us)) don't require
+credentials. Registering an `app_token` is recommended to raise the anonymous rate limit. For
+private or write-restricted datasets, set `api_key_id`/`api_key_secret`.
 
 ## Usage
 
@@ -75,24 +66,32 @@ Follow these instructions to contribute to this project.
 
 ### Initialize your Development Environment
 
+Prerequisites:
+
+- Python 3.10+
+- [uv](https://docs.astral.sh/uv/)
+
 ```bash
-pipx install poetry
-poetry install
+uv sync
 ```
 
 ### Create and Run Tests
 
 Create tests within the `tests` subfolder and
-  then run:
+then run:
 
 ```bash
-poetry run pytest
+uv run pytest
 ```
 
-You can also test the `tap-socrata` CLI interface directly using `poetry run`:
+The standard test suite in `tests/test_core.py` runs a live discovery and sync against a small,
+public NYC Open Data dataset (`data.cityofnewyork.us`, Queens Library Branches), so no credentials
+are needed. See `.env` for the config used and how to point the tap at other domains/datasets.
+
+You can also test the `tap-socrata` CLI interface directly using `uv run`:
 
 ```bash
-poetry run tap-socrata --help
+uv run tap-socrata --help
 ```
 
 ### Testing with [Meltano](https://www.meltano.com)
@@ -100,28 +99,16 @@ poetry run tap-socrata --help
 _**Note:** This tap will work in any Singer environment and does not require Meltano.
 Examples here are for convenience and to streamline end-to-end orchestration scenarios._
 
-<!--
-Developer TODO:
-Your project comes with a custom `meltano.yml` project file already created. Open the `meltano.yml` and follow any "TODO" items listed in
-the file.
--->
-
-Next, install Meltano (if you haven't already) and any needed plugins:
+Use Meltano to run an EL pipeline:
 
 ```bash
 # Install meltano
-pipx install meltano
-# Initialize meltano within this directory
-cd tap-socrata
-meltano install
-```
+uv tool install meltano
 
-Now you can test and orchestrate using Meltano:
-
-```bash
-# Test invocation:
+# Test invocation
 meltano invoke tap-socrata --version
-# OR run a test `elt` pipeline:
+
+# Run a test EL pipeline
 meltano run tap-socrata target-jsonl
 ```
 
