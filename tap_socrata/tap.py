@@ -1,14 +1,21 @@
 """Socrata tap class."""
 
 from __future__ import annotations
-from typing import List
+
+import sys
+import typing as t
+from datetime import datetime, timezone
 
 import requests
 from singer_sdk import Tap
 from singer_sdk import typing as th
-import typing as t
+
 from tap_socrata.client import SocrataStream
-from datetime import datetime
+
+if sys.version_info >= (3, 12):
+    from typing import override
+else:
+    from typing_extensions import override
 
 
 class TapSocrata(Tap):
@@ -20,7 +27,18 @@ class TapSocrata(Tap):
         th.Property(
             "domains",
             th.ArrayType(th.StringType),
+            required=True,
             description="Domain names to query (e.g., ['data.cityofchicago.org'])",
+        ),
+        th.Property(
+            "dataset_ids",
+            th.ArrayType(th.StringType),
+            required=False,
+            description=(
+                "Optional list of Socrata dataset (4x4) IDs to restrict discovery to. "
+                "If omitted, every dataset published under `domains` is discovered, "
+                "which can be a very large number of streams."
+            ),
         ),
         th.Property(
             "api_key_id",
@@ -67,9 +85,9 @@ class TapSocrata(Tap):
         # Default to US API if no domains specified or non-EU domain
         return "https://api.us.socrata.com/api/catalog/v1"
 
-    def _get_schema_for_column(self, col_type: str, col_name: str) -> dict:
+    def _get_schema_for_column(self, col_type: str) -> dict[str, t.Any]:
         """Map Socrata datatypes to JSON Schema types."""
-        schema = {
+        schema: dict[str, t.Any] = {
             "type": ["null", "string"],  # Default to nullable string
         }
 
@@ -110,7 +128,7 @@ class TapSocrata(Tap):
 
         return schema
 
-    def _sanitize_stream_name(self, name: str, id: str) -> str:
+    def _sanitize_stream_name(self, name: str, dataset_id: str) -> str:
         """Create a human-readable stream name from the dataset name and ID."""
         # Convert to lowercase and replace problematic characters
         sanitized = (
@@ -127,9 +145,10 @@ class TapSocrata(Tap):
         sanitized = "".join(c for c in sanitized if c.isalnum() or c == "_")
 
         # Add the ID as a suffix to ensure uniqueness
-        return f"{sanitized}_{id.replace('-', '_')}"
+        return f"{sanitized}_{dataset_id.replace('-', '_')}"
 
-    def discover_streams(self) -> List[SocrataStream]:
+    @override
+    def discover_streams(self) -> list[SocrataStream]:  # noqa: C901, PLR0912, PLR0915
         """Return a list of discovered streams."""
         headers = {}
         if self.config.get("app_token"):
@@ -150,21 +169,24 @@ class TapSocrata(Tap):
                 "offset": offset,
                 "limit": 1000,
             }
-            if self.config.get("api_key_id"):
+            if self.config.get("dataset_ids"):
+                params["ids"] = self.config["dataset_ids"]
+            api_key_id = self.config.get("api_key_id")
+            api_key_secret = self.config.get("api_key_secret")
+            if api_key_id and api_key_secret:
                 response = requests.get(
                     discovery_url,
                     params=params,
                     headers=headers,
-                    auth=(
-                        self.config.get("api_key_id"),
-                        self.config.get("api_key_secret"),
-                    ),
+                    auth=(api_key_id, api_key_secret),
+                    timeout=10,
                 )
             else:
                 response = requests.get(
                     discovery_url,
                     params=params,
                     headers=headers,
+                    timeout=10,
                 )
 
             response.raise_for_status()
@@ -178,24 +200,21 @@ class TapSocrata(Tap):
             resource = dataset.get("resource", {})
             metadata = dataset.get("metadata", {})
             try:
-                schema = {"type": "object", "properties": {}}
+                schema: dict[str, t.Any] = {"type": "object", "properties": {}}
 
-                # Map column types to JSON schema
-                for i, col_name in enumerate(resource["columns_name"]):
-                    field_name = (
-                        col_name.lower()
-                        .replace(" ", "_")
-                        .replace("(", "")
-                        .replace(")", "")
-                        .replace("-", "_")
-                    )
-                    col_type = resource["columns_datatype"][i].lower()
-                    schema["properties"][field_name] = self._get_schema_for_column(
-                        col_type, field_name
-                    )
+                # Map column types to JSON schema. `columns_field_name` is the
+                # actual key Socrata uses in each record's JSON payload, unlike
+                # `columns_name` which is just a human-readable display label.
+                for field_name, col_type in zip(
+                    resource["columns_field_name"],
+                    resource["columns_datatype"],
+                    strict=True,
+                ):
+                    schema["properties"][field_name] = self._get_schema_for_column(col_type.lower())
 
                 stream_name = self._sanitize_stream_name(
-                    resource.get("name", "unnamed"), resource["id"]
+                    resource.get("name", "unnamed"),
+                    resource["id"],
                 )
 
                 # Determine primary keys and replication key
@@ -206,7 +225,7 @@ class TapSocrata(Tap):
                     data_updated_at = datetime.strptime(
                         resource["data_updated_at"],
                         "%Y-%m-%dT%H:%M:%S.%fZ",
-                    )
+                    ).replace(tzinfo=timezone.utc)
                     replication_key = "_data_updated_at"
                     schema["properties"]["_data_updated_at"] = {
                         "type": ["null", "string"],
@@ -237,9 +256,11 @@ class TapSocrata(Tap):
                 )
 
                 streams.append(stream)
-            except Exception as e:
+            except Exception:  # noqa: BLE001
                 self.logger.warning(
-                    f"Failed to create stream for dataset {resource.get('id')}: {str(e)}"
+                    "Failed to create stream for dataset %s",
+                    resource.get("id"),
+                    exc_info=True,
                 )
         return streams
 

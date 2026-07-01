@@ -5,7 +5,7 @@
 
 version: 2
 updates:
-  - package-ecosystem: pip
+  - package-ecosystem: uv
     directory: "/"
     schedule:
       interval: weekly
@@ -20,16 +20,8 @@ updates:
         update-types:
           - "patch"
     versioning-strategy: increase-if-necessary
-  - package-ecosystem: pip
-    directory: "/.github/workflows"
-    schedule:
-      interval: weekly
-    commit-message:
-      prefix: "ci: "
-    groups:
-      ci:
-        patterns:
-          - "*"
+    cooldown:
+      default-days: 7
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
@@ -40,3 +32,5 @@ updates:
       actions:
         patterns:
           - "*"
+    cooldown:
+      default-days: 7
