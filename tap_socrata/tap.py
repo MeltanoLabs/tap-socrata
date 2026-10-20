@@ -128,7 +128,7 @@ class TapSocrata(Tap):
 
         return schema
 
-    def r_sanitize_stream_name(self, name: str, dataset_id: str) -> str:  # ruff: ignore[no-self-use]
+    def _sanitize_stream_name(self, name: str, dataset_id: str) -> str:  # ruff: ignore[no-self-use]
         """Create a human-readable stream name from the dataset name and ID."""  # ruff: ignore[docstring-missing-returns]
         # Convert to lowercase and replace problematic characters
         sanitized = (

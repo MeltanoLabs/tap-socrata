@@ -42,9 +42,9 @@ class SocrataStream(RESTStream):
 
     records_jsonpath = "$[*]"
 
-    @override
-    def __init__(
+    def __init__(  # ruff: ignore[too-many-arguments]
         self,
+        *,
         tap: Tap,
         name: str,
         schema: dict,
