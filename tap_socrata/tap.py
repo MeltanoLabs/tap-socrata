@@ -73,7 +73,7 @@ class TapSocrata(Tap):
     ).to_dict()
 
     def _get_discovery_url(self) -> str:
-        """Determine which discovery API to use based on provided domains."""
+        """Determine which discovery API to use based on provided domains."""  # ruff: ignore[docstring-missing-returns]
         if self.config.get("domains"):
             # Check the first domain to determine which API to use
             domain = self.config["domains"][0].lower()
@@ -85,8 +85,8 @@ class TapSocrata(Tap):
         # Default to US API if no domains specified or non-EU domain
         return "https://api.us.socrata.com/api/catalog/v1"
 
-    def _get_schema_for_column(self, col_type: str) -> dict[str, t.Any]:
-        """Map Socrata datatypes to JSON Schema types."""
+    def _get_schema_for_column(self, col_type: str) -> dict[str, t.Any]:  # ruff: ignore[no-self-use]
+        """Map Socrata datatypes to JSON Schema types."""  # ruff: ignore[docstring-missing-returns]
         schema: dict[str, t.Any] = {
             "type": ["null", "string"],  # Default to nullable string
         }
@@ -96,7 +96,7 @@ class TapSocrata(Tap):
             schema["type"] = ["null", "string", "number"]
         elif col_type == "checkbox":
             schema["type"] = ["null", "boolean"]
-        elif col_type in ["fixed_timestamp", "floating_timestamp"]:
+        elif col_type in {"fixed_timestamp", "floating_timestamp"}:
             schema["type"] = ["null", "string"]
             schema["format"] = "date-time"
         elif col_type == "location":
@@ -112,14 +112,14 @@ class TapSocrata(Tap):
                 "url": {"type": ["null", "string"]},
                 "description": {"type": ["null", "string"]},
             }
-        elif col_type in [
+        elif col_type in {
             "line",
             "multiline",
             "point",
             "multipoint",
             "polygon",
             "multipolygon",
-        ]:
+        }:
             schema["type"] = ["null", "object"]
             schema["properties"] = {
                 "type": {"type": "string"},
@@ -128,11 +128,12 @@ class TapSocrata(Tap):
 
         return schema
 
-    def _sanitize_stream_name(self, name: str, dataset_id: str) -> str:
-        """Create a human-readable stream name from the dataset name and ID."""
+    def r_sanitize_stream_name(self, name: str, dataset_id: str) -> str:  # ruff: ignore[no-self-use]
+        """Create a human-readable stream name from the dataset name and ID."""  # ruff: ignore[docstring-missing-returns]
         # Convert to lowercase and replace problematic characters
         sanitized = (
-            name.lower()
+            name
+            .lower()
             .replace(" ", "_")
             .replace("-", "_")
             .replace("(", "")
@@ -148,7 +149,7 @@ class TapSocrata(Tap):
         return f"{sanitized}_{dataset_id.replace('-', '_')}"
 
     @override
-    def discover_streams(self) -> list[SocrataStream]:  # noqa: C901, PLR0912, PLR0915
+    def discover_streams(self) -> list[SocrataStream]:  # ruff: ignore[complex-structure, too-many-branches, too-many-locals, too-many-statements]
         """Return a list of discovered streams."""
         headers = {}
         if self.config.get("app_token"):
@@ -199,7 +200,7 @@ class TapSocrata(Tap):
         for dataset in all_datasets:
             resource = dataset.get("resource", {})
             metadata = dataset.get("metadata", {})
-            try:
+            try:  # ruff: ignore[too-many-statements-in-try-clause]
                 schema: dict[str, t.Any] = {"type": "object", "properties": {}}
 
                 # Map column types to JSON schema. `columns_field_name` is the
@@ -256,7 +257,7 @@ class TapSocrata(Tap):
                 )
 
                 streams.append(stream)
-            except Exception:  # noqa: BLE001
+            except Exception:
                 self.logger.warning(
                     "Failed to create stream for dataset %s",
                     resource.get("id"),

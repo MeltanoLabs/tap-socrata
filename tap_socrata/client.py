@@ -87,7 +87,7 @@ class SocrataStream(RESTStream):
         """Get records.
 
         Returns None if dataset hasn't been updated since last run.
-        """
+        """  # ruff: ignore[docstring-missing-yields]
         starting_ts = self.get_starting_timestamp(context)
         if starting_ts and self._data_updated_at:
             starting_ts = starting_ts.replace(tzinfo=timezone.utc)
@@ -99,13 +99,13 @@ class SocrataStream(RESTStream):
     @property
     @override
     def url_base(self) -> str:
-        """Return the API URL root for this dataset."""
+        """API URL root for this dataset."""
         return f"https://{self._domain}"
 
     @property
     @override
     def authenticator(self) -> HTTPBasicAuth | APIAuthenticatorBase:
-        """Return a new authenticator object."""
+        """New authenticator object."""
         api_key_id = self.config.get("api_key_id")
         api_key_secret = self.config.get("api_key_secret")
         if api_key_id and api_key_secret:
@@ -115,7 +115,7 @@ class SocrataStream(RESTStream):
     @property
     @override
     def http_headers(self) -> dict:
-        """Return the http headers needed."""
+        """The http headers."""
         headers = {}
         if self.config.get("app_token"):
             headers["X-App-Token"] = self.config["app_token"]
@@ -147,7 +147,7 @@ class SocrataStream(RESTStream):
 
     @override
     def parse_response(self, response: requests.Response) -> t.Iterable[dict]:
-        """Parse the response and return an iterator of result records."""
+        """Parse the response and return an iterator of result records."""  # ruff: ignore[docstring-missing-yields]
         for record in extract_jsonpath(
             self.records_jsonpath,
             input=response.json(parse_float=decimal.Decimal),
@@ -159,5 +159,5 @@ class SocrataStream(RESTStream):
 
     @override
     def get_url(self, context: Context | None = None) -> str:
-        """Get URL for API request."""
+        """Get URL for API request."""  # ruff: ignore[docstring-missing-returns]
         return f"{self.url_base}/resource/{self._dataset_id}.json"
